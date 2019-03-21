@@ -67,7 +67,13 @@ public class ServiceVerticle extends AbstractVerticle {
      */
     private void egressLocationRequestByNodeName(RoutingContext rc) {
         String nodeName = rc.request().getParam("nodeName");
-        rc.response().setStatusCode(200).end(this.getEgressForNode(nodeName));
+        try {
+            String egress = getEgressForNode(nodeName);
+            rc.response().setStatusCode(200).end(egress);
+        } catch (RuntimeException r) {
+            log.error(r.getMessage());
+            rc.response().setStatusCode(500).end("Internal Server Error: error resolving egress service for node");
+        }
     }
 
     /**
@@ -76,14 +82,14 @@ public class ServiceVerticle extends AbstractVerticle {
      * @param nodeName
      * @return egress service
      */
-    private String getEgressForNode(String nodeName) {
+    private String getEgressForNode(String nodeName) throws RuntimeException {
         JsonArray nodeGroups = config.getJsonArray("nodeGroups");
         Optional<JsonObject> nodeGroup = nodeGroups.stream().filter(
                 ng -> ng instanceof JsonObject).map(ng -> (JsonObject) ng).filter(
                 ng -> ng.getJsonArray("hosts").getList().stream().map(h -> h).anyMatch(h -> ((String) h).equalsIgnoreCase(nodeName))).findFirst();
 
 
-        return nodeGroup.map(ng -> ng.getString("egress")).orElseThrow(RuntimeException::new);
+        return nodeGroup.map(ng -> ng.getString("egress")).orElseThrow(() -> new RuntimeException(String.format("node not found: %s", nodeName)));
     }
 
 
