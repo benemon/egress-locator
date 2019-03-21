@@ -1,0 +1,21 @@
+# Configuration used with vertx:run for local development.
+---
+nodeGroups:
+  -
+    egress: fake-egress-apps-2.demolab.local
+    hosts:
+      - skylake-apps-1.demolab.local
+      - skylake-apps-3.demolab.local
+    nodeGroup: siteA
+  -
+    egress: fake-egress-apps-2.demolab.local
+    hosts:
+      - skylake-apps-2.demolab.local
+      - skylake-apps-4.demolab.local
+    nodeGroup: siteB
+
+
+
+
+
+
